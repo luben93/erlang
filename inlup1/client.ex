@@ -24,6 +24,37 @@ defmodule Client do
 		send :server, :stop
 	end
 
+	def write(key,data) do
+		send :server,{:write,key,data}
+	end
+
+	def delete(key) do
+		send :server,{:delete,key}
+	end
+
+	def read(key) do
+		send :server,{:read,key,self}
+		receive do
+			res ->
+				res
+		end
+	end
+
+	def keys do
+		send :server,{:keys,self}
+		receive do
+			res ->
+				res
+		end
+	end
+
+	def match(val) do
+		send :server,{:match,val,self}
+		receive do
+			res -> 
+				res
+		end
+	end
 
 	defp loop(db) do
 		receive do
@@ -35,13 +66,21 @@ defmodule Client do
 				#message result
 				{stat,data}=:db.read(key,db)
 				send from,data
-			{:keys} -> 
-
+				loop(db)
+			{:keys,from} -> 
+				{db, result} = :db.keys(db)
+				send from,result
+				loop(db)
+			{:match,val,from} -> #test this
+				{_,_,result} = :db.match(val,db)
+				send from,result
+				loop(db)
 
 			{from,msg} ->
 				echo(["simon","says:",msg])
 				loop(db)
 			:stop -> 
+				:db.destroy(db)
 				echo(["stop","stopping"])
 			_ ->
 				echo("_ error")
