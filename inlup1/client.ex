@@ -1,4 +1,15 @@
 defmodule Client do
+	# def _in do
+	# 	receive do
+	# 		:lock ->
+	# 			send self,:lock
+	# 		other -> 
+	# 			send self,other
+	# 			Client._in
+	# 	end
+	# end
+
+	#attempt to logg info 
 	 def echo([msg]) do
 		echo(msg)	
 	 end
@@ -9,29 +20,47 @@ defmodule Client do
 	 def echo(msg) do
 	 	IO.puts(msg)
 	 end
-
-
-	def start do
-	    {:ok, pid}=Task.start_link(fn -> loop(:db.new) end)
-		Process.register(pid,:server)
-	end
-
 	def echo do
 		send :server,{self(),"hej"}
 	end
 
+	# def lock do
+	# 	send self,:lock
+	# end
+
+	# def unlock do
+	# 	receive do
+	# 		:lock ->
+	# 			:ok
+	# 	end
+	# end
+
+	#starts a db server and creates a new db 
+	def start do
+	    {:ok, pid}=Task.start_link(fn -> loop(:db.new) end)
+		Process.register(pid,:server)
+		:ok
+	end
+
+	#stops the db server 
 	def stop do
 		send :server, :stop
+		:ok
 	end
 
+	#writes data to key, overwriting
 	def write(key,data) do
 		send :server,{:write,key,data}
+		:ok
 	end
 
+	#delete key and data
 	def delete(key) do
 		send :server,{:delete,key}
+		:ok
 	end
 
+	#reads key and returns db result
 	def read(key) do
 		send :server,{:read,key,self}
 		receive do
@@ -40,6 +69,7 @@ defmodule Client do
 		end
 	end
 
+	# returns all keys
 	def keys do
 		send :server,{:keys,self}
 		receive do
@@ -48,14 +78,16 @@ defmodule Client do
 		end
 	end
 
-	def match(val) do
-		send :server,{:match,val,self}
+	#return keys contaning data
+	def match(data) do
+		send :server,{:match,data,self}
 		receive do
 			res -> 
 				res
 		end
 	end
 
+	#db loop and server 
 	defp loop(db) do
 		receive do
 			{:write,key,data} ->
@@ -63,25 +95,25 @@ defmodule Client do
 			{:delete,key}->
 				loop(:db.delete(key,db))
 			{:read,key,from}->
-				#message result
-				{stat,data}=:db.read(key,db)
-				send from,data
+				out=:db.read(key,db)
+				send from,out
 				loop(db)
 			{:keys,from} -> 
-				{db, result} = :db.keys(db)
-				send from,result
+				out = :db.keys(db)
+				send from,out
 				loop(db)
-			{:match,val,from} -> #test this
-				{_,_,result} = :db.match(val,db)
+			{:match,val,from} -> #? 
+				#{_,_,result} = :db.match(val,db)
+				result = :db.match(val,db)
 				send from,result
 				loop(db)
 
-			{from,msg} ->
+			{from,msg} -> #used?
 				echo(["simon","says:",msg])
 				loop(db)
-			:stop -> 
-				:db.destroy(db)
-				echo(["stop","stopping"])
+			:stop -> # not calling loop and ending the server
+				#:db.destroy(db)
+				:ok
 			_ ->
 				echo("_ error")
 		end
