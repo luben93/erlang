@@ -1,58 +1,99 @@
-defmodule Client do
-	#use GenServer
+defmodule KV.Client do
+	use GenServer
 	
 
 
 	#starts a db server and creates a new db 
-	def start do
-	    {:ok, pid}=Task.start_link(fn -> loop(:db.new) end)
-		Process.register(pid,:server)
-		:ok
+	def start_link() do
+	    GenServer.start_link(__MODULE__,:ok,name: :server)
 	end
 
+#	def start_link(name) do
+#	    {:ok, pid}=Task.start_link(fn -> loop(:db.new) end)
+#		Process.register(pid,:server)
+#		:ok
+#	end
+
 	#stops the db server 
-	def stop do
-		send :server, :stop
-		:ok
-	end
+	#def stop do
+	#	send :server, :stop
+	#	:ok
+	#end
 
 	#writes data to key, overwriting
 	def write(key,data) do
-		send :server,{:write,key,data}
-		:ok
+		#send :server,{:write,key,data}
+		#:ok
+		GenServer.cast(:server,{:write,key,data})
+
 	end
 
 	#delete key and data
 	def delete(key) do
-		send :server,{:delete,key}
-		:ok
+		#send :server,{:delete,key}
+		#:ok
+		GenServer.cast(:server,{:delete,key})
 	end
 
 	#reads key and returns db result
 	def read(key) do
-		send :server,{:read,key,self}
-		receive do
-			res ->
-				res
-		end
+	#	send :server,{:read,key,self}
+	#	receive do
+	#		res ->
+	#			res
+	#	end
+		GenServer.call(:server,{:read,key})
 	end
 
 	# returns all keys
 	def keys do
-		send :server,{:keys,self}
-		receive do
-			res ->
-				res
-		end
+	#	send :server,{:keys,self}
+	#	receive do
+	#		res ->
+	#			res
+	#	end
+		GenServer.call(:server,{:keys})
 	end
 
 	#return keys contaning data
 	def match(data) do
-		send :server,{:match,data,self}
-		receive do
-			res -> 
-				res
-		end
+	#	send :server,{:match,data,self}
+	#	receive do
+	#		res -> 
+	#			res
+	#	end
+		GenServer.call{:server,{:match,data}}
+	end
+
+
+	## Server side
+
+	def init(:ok) do
+		{:ok,:db.new}
+	end
+
+	def handle_call({:read,key},_from,db) do
+		{:reply,:db.read(key,db),db}
+	end
+
+	def handle_call({:keys},_from,db) do
+		{:reply,:db.keys(db),db}
+	end
+
+	def handle_call({:match,data},_from,db) do
+		{:reply,:db.match(data,db),db}
+	end
+
+	def handle_cast({:write,key,data},db) do
+		{:noreply,:db.write(key,data,db)}
+	end
+
+	def handle_cast({:delete,key},db) do
+		{:noreply,:db.delete(key,db)}
+	end
+
+	def handle_info(_msg, state) do
+    	{:noreply, state}
 	end
 
 	#db loop and server 
