@@ -2,9 +2,13 @@ defmodule KV.ClientTest do
   use ExUnit.Case, async: true
 
 
+  setup context do
+    {:ok, client} = KV.Client.start_link(context.test)
+    {:ok, client: client}
+  end
 
-  test "spawns buckets" do
-    {:ok,_pid} = KV.Client.start_link
+  test "spawns buckets",%{client: client} do
+    #{:ok,_pid} = KV.Client.start_link
     assert KV.Client.read("shopping") == {:error,:instance}
 
   #  KV.Client.create(registry, "shopping")

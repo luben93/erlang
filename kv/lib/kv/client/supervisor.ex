@@ -8,7 +8,7 @@ defmodule KV.Client.Supervisor do
     Supervisor.start_link(__MODULE__, :ok, name: @name)
   end
 
-  def start_bucket do
+  def start_client do
     Supervisor.start_child(@name, [])
   end
 

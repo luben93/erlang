@@ -4,8 +4,8 @@ defmodule KV.Client do
 
 
 	#starts a db server and creates a new db 
-	def start_link() do
-	    GenServer.start_link(__MODULE__,:ok,name: :server)
+	def start_link(server) do
+	    GenServer.start_link(__MODULE__,:ok,name: server)
 	end
 
 #	def start_link(name) do
@@ -21,48 +21,48 @@ defmodule KV.Client do
 	#end
 
 	#writes data to key, overwriting
-	def write(key,data) do
+	def write(server,key,data) do
 		#send :server,{:write,key,data}
 		#:ok
-		GenServer.cast(:server,{:write,key,data})
+		GenServer.cast(server,{:write,key,data})
 
 	end
 
 	#delete key and data
-	def delete(key) do
+	def delete(server,key) do
 		#send :server,{:delete,key}
 		#:ok
-		GenServer.cast(:server,{:delete,key})
+		GenServer.cast(server,{:delete,key})
 	end
 
 	#reads key and returns db result
-	def read(key) do
+	def read(server,key) do
 	#	send :server,{:read,key,self}
 	#	receive do
 	#		res ->
 	#			res
 	#	end
-		GenServer.call(:server,{:read,key})
+		GenServer.call(server,{:read,key})
 	end
 
 	# returns all keys
-	def keys do
+	def keys(server) do
 	#	send :server,{:keys,self}
 	#	receive do
 	#		res ->
 	#			res
 	#	end
-		GenServer.call(:server,{:keys})
+		GenServer.call(server,{:keys})
 	end
 
 	#return keys contaning data
-	def match(data) do
+	def match(server,data) do
 	#	send :server,{:match,data,self}
 	#	receive do
 	#		res -> 
 	#			res
 	#	end
-		GenServer.call{:server,{:match,data}}
+		GenServer.call{server,{:match,data}}
 	end
 
 
@@ -96,37 +96,37 @@ defmodule KV.Client do
     	{:noreply, state}
 	end
 
-	#db loop and server 
-	defp loop(db) do
-		receive do
-			{:write,key,data} ->
-				loop(:db.write(key,data,db))
-			{:delete,key}->
-				loop(:db.delete(key,db))
-			{:read,key,from}->
-				out=:db.read(key,db)
-				send from,out
-				loop(db)
-			{:keys,from} -> 
-				out = :db.keys(db)
-				send from,out
-				loop(db)
-			{:match,val,from} -> #? 
-				#{_,_,result} = :db.match(val,db)
-				result = :db.match(val,db)
-				send from,result
-				loop(db)
+	# #db loop and server 
+	# defp loop(db) do
+	# 	receive do
+	# 		{:write,key,data} ->
+	# 			loop(:db.write(key,data,db))
+	# 		{:delete,key}->
+	# 			loop(:db.delete(key,db))
+	# 		{:read,key,from}->
+	# 			out=:db.read(key,db)
+	# 			send from,out
+	# 			loop(db)
+	# 		{:keys,from} -> 
+	# 			out = :db.keys(db)
+	# 			send from,out
+	# 			loop(db)
+	# 		{:match,val,from} -> #? 
+	# 			#{_,_,result} = :db.match(val,db)
+	# 			result = :db.match(val,db)
+	# 			send from,result
+	# 			loop(db)
 
-			{from,msg} -> #used?
-				echo(["simon","says:",msg])
-				loop(db)
-			:stop -> # not calling loop and ending the server
-				#:db.destroy(db)
-				:ok
-			_ ->
-				echo("_ error")
-		end
-	end
+	# 		{from,msg} -> #used?
+	# 			echo(["simon","says:",msg])
+	# 			loop(db)
+	# 		:stop -> # not calling loop and ending the server
+	# 			#:db.destroy(db)
+	# 			:ok
+	# 		_ ->
+	# 			echo("_ error")
+	# 	end
+	# end
 
 
 end
