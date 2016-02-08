@@ -3,7 +3,7 @@ defmodule KV.ClientTest do
 
 
   setup context do
-    {:ok, client} = KV.Client.start_link(context.test)
+    {:ok, client} = KV.Client.start_link#(context.test)
     {:ok, client: client}
   end
 

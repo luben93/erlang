@@ -27,6 +27,7 @@ read(Key, {K1,_,_,Right}) when Key > K1 ->
 read(_, {_, Val, _, _}) -> {ok,Val};
 read(_, empty) -> {error,instance}.
 
+
 %% Write and element Key/Value into the tree overwriting any existing
 %% value.
 
@@ -75,3 +76,5 @@ match({Key,Val,Left,Right}, Val, Acc) ->
     match(Left, Val, [Key] ++ match(Right, Val, Acc));
 match({_,_,Left,Right}, Val, Acc) ->
     match(Left, Val, match(Right, Val, Acc)).
+
+compile(empty) -> empty.

@@ -4,8 +4,8 @@ defmodule KV.Client do
 
 
 	#starts a db server and creates a new db 
-	def start_link(server) do
-	    GenServer.start_link(__MODULE__,:ok,name: server)
+	def start_link do
+	    GenServer.start_link(__MODULE__,:ok,name: :server)
 	end
 
 #	def start_link(name) do
@@ -21,56 +21,59 @@ defmodule KV.Client do
 	#end
 
 	#writes data to key, overwriting
-	def write(server,key,data) do
+	def write(key,data) do
 		#send :server,{:write,key,data}
 		#:ok
-		GenServer.cast(server,{:write,key,data})
+		GenServer.cast(:server,{:write,key,data})
 
 	end
 
 	#delete key and data
-	def delete(server,key) do
+	def delete(key) do
 		#send :server,{:delete,key}
 		#:ok
-		GenServer.cast(server,{:delete,key})
+		GenServer.cast(:server,{:delete,key})
 	end
 
 	#reads key and returns db result
-	def read(server,key) do
+	def read(key) do
 	#	send :server,{:read,key,self}
 	#	receive do
 	#		res ->
 	#			res
 	#	end
-		GenServer.call(server,{:read,key})
+		GenServer.call(:server,{:read,key})
 	end
 
 	# returns all keys
-	def keys(server) do
+	def keys do
 	#	send :server,{:keys,self}
 	#	receive do
 	#		res ->
 	#			res
 	#	end
-		GenServer.call(server,{:keys})
+		GenServer.call(:server,{:keys})
 	end
 
 	#return keys contaning data
-	def match(server,data) do
+	def match(data) do
 	#	send :server,{:match,data,self}
 	#	receive do
 	#		res -> 
 	#			res
 	#	end
-		GenServer.call{server,{:match,data}}
+		GenServer.call{:server,{:match,data}}
 	end
 
 
 	## Server side
 
 	def init(:ok) do
-		{:ok,:db.new}
-	end
+      db = :db.new
+	  #refs  = %{}
+      #{:ok, {db, refs}}
+      {:ok,db}
+    end
 
 	def handle_call({:read,key},_from,db) do
 		{:reply,:db.read(key,db),db}
