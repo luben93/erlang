@@ -9,7 +9,8 @@ defmodule Labb1Test do
   test "start and get info" do
   	{:ok,pid} = Labb1.start_link(5,2)
   	assert {:ok, [total: 5, taken: 2, free: 3]} == Labb1.get_info(pid)
-  end
+    assert {:error,reason} = Labb1.start_link(-1,3)
+ end
 
   test "taken and return " do 
   		{:ok,pid} = Labb1.start_link(5,2)

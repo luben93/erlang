@@ -5,11 +5,16 @@ defmodule Labb1 do
 
 	@doc"""
 	starts station
+    
 	`ref` = unique id for station (pid)
 	"""
 	def start_link(total,taken) do
-		GenServer.start_link(__MODULE__,{total,taken},[])
-	end
+        if total > 0 do
+            GenServer.start_link(__MODULE__,{total,taken},[])
+	    else 
+            {:error,"total must be greater than zero"}
+        end
+    end
 
 	#quickstart for testing
 	def st do 
