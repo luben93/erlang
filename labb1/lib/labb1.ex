@@ -62,7 +62,7 @@ defmodule Labb1 do
 
 
 	def handle_call({:info},_from,{total,taken}=state) do #? define ref in vars to match state?
-		{:reply,{:ok,[{:total,total},{:taken,taken},{:free,total - taken}]},state}
+		{:reply,{:ok,[{:total,total},{:taken,taken},{:occupied,total - taken}]},state}
 	end
 
 end
